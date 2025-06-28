@@ -109,21 +109,13 @@ alias gcam!='git commit -m "$(curl -s http://whatthecommit.com/index.txt)"'
 
 gpa() {
   gaa
-  if [ -z "$1" ]; then
-    gcam!
-  else
-    gcam $1
-  fi
+  gcam $1
   gp
 }
 
 gpasup() {
   gaa
-  if [ -z "$1" ]; then
-    gcam!
-  else
-    gcam $1
-  fi
+  gcam $1
   gpsup
 }
 
