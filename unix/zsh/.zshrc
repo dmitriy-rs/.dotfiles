@@ -1,80 +1,109 @@
-export ZSH="$HOME/.oh-my-zsh"
+# Optimized .zshrc with better performance
 
-ZSH_THEME="dracula-pro"
+# Skip loading oh-my-zsh lib files we don't need
+ZSH_DISABLE_COMPFIX=true
+DISABLE_MAGIC_FUNCTIONS=true
+DISABLE_LS_COLORS=true
+DISABLE_AUTO_UPDATE=true
+
+export ZSH="$HOME/.oh-my-zsh"
+ZSH_THEME="af-magic"
 
 setopt auto_cd
 
 export VISUAL=nvim
+export EDITOR='nvim'
 
 ## command history configuration
 HISTFILE=$HOME/.zsh_history
 HISTSIZE=1000000
 SAVEHIST=1000000
-setopt hist_ignore_dups  # ignore duplication command history list
-setopt hist_ignore_space # ignore when commands starts with space
-setopt share_history     # share command history data
+setopt hist_ignore_dups
+setopt hist_ignore_space
+setopt share_history
 
-# Which plugins would you like to load?
-plugins=(
-  zsh-autosuggestions
-  zsh-syntax-highlighting
-  zsh-history-substring-search
-  fzf
-)
+# Empty plugins - we'll load them manually
+plugins=()
 
-# FZF
-export FZF_BASE=/user/bin/fzf
-FZF_CTRL_T_COMMAND='fd --type f --hidden --exclude .git --exclude .cache'
-FZF_ALT_C_COMMAND='fd --type d --hidden --exclude .git'
-
+# FZF - lazy load configuration
+_fzf_init() {
+  export FZF_BASE=/user/bin/fzf
+  export FZF_CTRL_T_COMMAND='fd --type f --hidden --exclude .git --exclude .cache'
+  export FZF_ALT_C_COMMAND='fd --type d --hidden --exclude .git'
+  [[ -f $ZSH/plugins/fzf/fzf.plugin.zsh ]] && source $ZSH/plugins/fzf/fzf.plugin.zsh
+}
 
 # User configuration
-source $ZDOTDIR/.aliases
-
-if [[ -n $SSH_CONNECTION ]]; then
-  export EDITOR='vim'
-else
-  export EDITOR='nvim'
-fi
+[[ -f $ZDOTDIR/.aliases ]] && source $ZDOTDIR/.aliases
 
 unsetopt beep
 
-[ -f ~/.cargo/env ] && source $HOME/.cargo/env
-
-eval "$(fnm env --use-on-cd)"
-# eval "$(direnv hook zsh)"
-eval "$(zoxide init zsh)"
-
 export LC_ALL="en_US.UTF-8"
 export LANG="en_US.UTF-8"
-export LC_COLLATE="en_US.UTF-8"
-export LC_CTYPE="en_US.UTF-8"
-export LC_MESSAGES="en_US.UTF-8"
-export LC_MONETARY="en_US.UTF-8"
-export LC_NUMERIC="en_US.UTF-8"
 
-# bun completions
-[ -s "/Users/dmitriy/.bun/_bun" ] && source "/Users/dmitriy/.bun/_bun"
+# bun and pnpm paths are now set in .zshenv
 
-# bun
-export BUN_INSTALL="$HOME/.bun"
-export PATH="$BUN_INSTALL/bin:$PATH"
-
-autoload -Uz compinit
-zstyle ':completion:*' menu select
-fpath+=~/.zfunc
-
-autoload bashcompinit && bashcompinit
-autoload -Uz compinit && compinit
-
-fpath+=${ZSH_CUSTOM:-${ZSH:-~/.oh-my-zsh}/custom}/plugins/zsh-completions/src
-
+# Load minimal oh-my-zsh (just theme and core)
 source $ZSH/oh-my-zsh.sh
 
-# pnpm
-export PNPM_HOME="/Users/dmitriy/Library/pnpm"
-case ":$PATH:" in
-  *":$PNPM_HOME:"*) ;;
-  *) export PATH="$PNPM_HOME:$PATH" ;;
-esac
-# pnpm end
+# Setup completion system efficiently
+fpath+=~/.zfunc
+fpath+=${ZSH_CUSTOM:-${ZSH:-~/.oh-my-zsh}/custom}/plugins/zsh-completions/src
+
+# Optimized compinit - check if dump exists and is newer than zsh installation
+autoload -Uz compinit
+zcompdump="${ZDOTDIR:-$HOME}/.zcompdump"
+if [[ $zcompdump -nt /usr/share/zsh ]] && [[ ! $zcompdump.zwc -ot $zcompdump ]]; then
+  # Skip security check for faster startup
+  compinit -C -d "$zcompdump"
+else
+  # Full init and compile the dump file
+  compinit -d "$zcompdump"
+  # Compile the dump file in background for faster future startups
+  { [[ -f "$zcompdump" && ! -f "$zcompdump.zwc" ]] && zcompile "$zcompdump" } &!
+fi
+
+# Load essential plugins manually
+source $ZSH/custom/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
+source $ZSH/custom/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+source $ZSH/custom/plugins/zsh-history-substring-search/zsh-history-substring-search.zsh
+
+# Lazy load FZF on first use
+fzf() {
+  unfunction fzf
+  _fzf_init
+  fzf "$@"
+}
+
+# Lazy load heavy commands
+if [[ -f ~/.cargo/env ]]; then
+  cargo() {
+    unfunction cargo
+    source $HOME/.cargo/env
+    cargo "$@"
+  }
+fi
+
+fnm() {
+  unfunction fnm
+  eval "$(command fnm env --use-on-cd)"
+  fnm "$@"
+}
+
+# direnv
+eval "$(direnv hook zsh)"
+
+z() {
+  unfunction z
+  eval "$(zoxide init zsh)"
+  z "$@"
+}
+
+# Lazy load bun completions
+if [[ -s "/Users/dmitriy/.bun/_bun" ]]; then
+  bun() {
+    unfunction bun
+    source "/Users/dmitriy/.bun/_bun"
+    bun "$@"
+  }
+fi

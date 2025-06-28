@@ -184,6 +184,9 @@ outside_zellij() {
       exit 0
     fi
 
+    # Force delete session if it in the list of resurections
+    zellij d "$session_name"
+
     zellij --session "$session_name" --new-session-with-layout "$layout" options --default-cwd "$project_dir"
     exit 0
   fi

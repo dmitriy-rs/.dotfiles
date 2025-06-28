@@ -1,6 +1,6 @@
 [user]
 	name = Dmitriy Popov
-	email = me@demestoss.com
+	email = dmitriiy.popov@cteleport.com
 
 [includeIf "gitdir:~/work/**"]
     path = ~/work/.gitconfig
@@ -29,3 +29,8 @@
 	ui = auto
 [branch]
 	sort = -committerdate
+[filter "lfs"]
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
+	process = git-lfs filter-process
+	required = true

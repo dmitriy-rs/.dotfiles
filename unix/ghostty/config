@@ -17,14 +17,12 @@ clipboard-write = allow
 clipboard-paste-protection = false
 clipboard-trim-trailing-spaces = true
 
-command = /opt/homebrew/bin/nu --login --config "$HOME/.config/nushell/config.nu"
-
 window-padding-y = 2,0
 
 keybind = cmd+t=unbind
 keybind = cmd+n=unbind
 keybind = cmd+r=unbind
-keybind = cmd+c=unbind
+# keybind = cmd+c=unbind
 keybind = cmd+d=unbind
 keybind = cmd+D=unbind
 keybind = cmd+shift+D=unbind

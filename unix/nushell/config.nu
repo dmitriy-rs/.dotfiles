@@ -43,6 +43,6 @@ if not (which fnm | is-empty) {
 
 
 # Zellij
-if 'ZELLIJ' not-in ($env | columns) and 'SSH_CONNECTION' not-in ($env | columns)  {
-    zs
-}
+# if 'ZELLIJ' not-in ($env | columns) and 'SSH_CONNECTION' not-in ($env | columns)  {
+#     zs
+# }
